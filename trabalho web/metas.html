@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metas - Assistente Financeiro</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="titulo">
+            <h1>Assistente Financeiro</h1>
+            <p class="titulo-pagina">Metas</p>
+        </div>
+
+        <nav class="menu">
+            <a href="index.html">Visão geral</a>
+            <a href="metas.html" class="ativo">Metas</a>
+        </nav>
+    </header>
+
+    <main class="pagina-metas">
+        <section id="limites" class="card">
+            <h2>Limites por categoria</h2>
+
+            <div class="form-linha">
+                <select id="metas-mes" aria-label="Mês"></select>
+                <select id="metas-ano" aria-label="Ano">
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2027">2027</option>
+                </select>
+            </div>
+
+            <form id="form-limite" class="form-linha">
+                <select id="limite-categoria" aria-label="Categoria"></select>
+                <input type="number" id="limite-valor" step="0.01" min="0.01"
+                    placeholder="Limite mensal (R$)" aria-label="Limite mensal">
+                <button type="submit">Salvar limite</button>
+            </form>
+
+            <ul id="lista-limites"></ul>
+        </section>
+
+        <section id="economia" class="card">
+            <h2>Metas de economia</h2>
+
+            <form id="form-meta" class="form-linha">
+                <input type="text" id="meta-nome" placeholder="Nome da meta (ex.: Viagem)"
+                    aria-label="Nome da meta">
+                <input type="number" id="meta-alvo" step="0.01" min="0.01"
+                    placeholder="Valor alvo (R$)" aria-label="Valor alvo">
+                <button type="submit">Criar meta</button>
+            </form>
+
+            <ul id="lista-metas"></ul>
+        </section>
+
+    </main>
+
+    <script src="js/metas.js"></script>
+</body>
+
+</html>
