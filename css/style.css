@@ -544,7 +544,7 @@ header {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px 16px;#
+    gap: 10px 16px;
     padding: 16px 0;
     border-bottom: 1px solid var(--cor-borda);
 }
@@ -598,6 +598,75 @@ header {
 .form-guardar {
     flex-basis: 100%;
     margin: 0;
+}
+
+.aviso {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translate(-50%, -16px);
+    max-width: calc(100% - 32px);
+    padding: 12px 20px;
+    border-radius: 8px;
+    background-color: var(--cor-texto);
+    color: #FFFFFF;
+    font-size: 0.95rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 2000;
+}
+
+.aviso.visivel {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.modal-confirmacao {
+    max-width: 380px;
+}
+
+.texto-confirmacao {
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.botoes-form .btn-secundario,
+.botoes-form .btn-perigo {
+    font-family: inherit;
+}
+
+.botoes-form .btn-secundario {
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+}
+
+.botoes-form .btn-secundario:hover {
+    background-color: #DCE2EC;
+}
+
+.botoes-form .btn-perigo {
+    background-color: var(--cor-despesa);
+    color: #FFFFFF;
+}
+
+.botoes-form .btn-perigo:hover {
+    background-color: #B03A35;
+}
+
+.comparacao {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--cor-texto-suave);
+}
+
+.comparacao.positiva {
+    color: var(--cor-receita);
+}
+
+.comparacao.negativa {
+    color: var(--cor-despesa);
 }
 
 
