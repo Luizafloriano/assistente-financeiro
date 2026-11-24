@@ -60,6 +60,10 @@ function apareceNoMes(item, mesSelecionado, anoSelecionado) {
     const mesesSelecionado = anoSelecionado * 12 + mesSelecionado;
 
     if (item.recorrente) {
+        if (item.encerradaEm !== undefined && mesesSelecionado >= item.encerradaEm) {
+            return false;
+        }
+
         return mesesSelecionado >= mesesDoItem;
     }
 
@@ -83,10 +87,12 @@ function salvarLimites() {
 }
 
 function excluirLimite(categoria) {
-    delete limites[categoria];
+    confirmarAcao("Deseja excluir este limite?", () => {
+        delete limites[categoria];
 
-    salvarLimites();
-    exibirLimites();
+        salvarLimites();
+        exibirLimites();
+    });
 }
 
 function exibirLimites() {
@@ -166,7 +172,7 @@ formLimite.addEventListener("submit", (event) => {
     const valor = Number(limiteValor.value);
 
     if (!Number.isFinite(valor) || valor <= 0) {
-        alert("Informe um limite válido.");
+        mostrarAviso("Informe um limite válido.");
         return;
     }
 
@@ -196,16 +202,12 @@ function salvarMetas() {
 }
 
 function excluirMeta(id) {
-    const confirmou = confirm("Deseja excluir esta meta?");
+    confirmarAcao("Deseja excluir esta meta?", () => {
+        metas = metas.filter((meta) => meta.id !== id);
 
-    if (!confirmou) {
-        return;
-    }
-
-    metas = metas.filter((meta) => meta.id !== id);
-
-    salvarMetas();
-    exibirMetas();
+        salvarMetas();
+        exibirMetas();
+    });
 }
 
 function exibirMetas() {
@@ -283,7 +285,7 @@ function exibirMetas() {
             const valorGuardado = Number(campoValor.value);
 
             if (!Number.isFinite(valorGuardado) || valorGuardado <= 0) {
-                alert("Informe um valor válido.");
+                mostrarAviso("Informe um valor válido.");
                 return;
             }
 
@@ -311,7 +313,7 @@ formMeta.addEventListener("submit", (event) => {
     const alvo = Number(metaAlvo.value);
 
     if (nome === "" || !Number.isFinite(alvo) || alvo <= 0) {
-        alert("Informe o nome e um valor alvo válido.");
+        mostrarAviso("Informe o nome e um valor alvo válido.");
         return;
     }
 
