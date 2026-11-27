@@ -192,6 +192,65 @@ metasAno.addEventListener("change", exibirLimites);
 
 let metas = JSON.parse(localStorage.getItem("metas")) || [];
 
+function dataDeHoje() {
+    const hoje = new Date();
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    const dia = String(hoje.getDate()).padStart(2, "0");
+
+    return `${hoje.getFullYear()}-${mes}-${dia}`;
+}
+
+function totalGuardado(meta) {
+    return meta.depositos.reduce((total, deposito) => total + deposito.valor, 0);
+}
+
+function saldoDisponivelHoje() {
+    const hoje = new Date();
+    const mes = hoje.getMonth();
+    const ano = hoje.getFullYear();
+    const mesesAtual = ano * 12 + mes;
+
+    let saldo = 0;
+
+    movimentacoes.forEach((item) => {
+        if (apareceNoMes(item, mes, ano)) {
+            saldo += item.tipo === "receita" ? item.valor : -item.valor;
+        }
+    });
+
+    metas.forEach((meta) => {
+        meta.depositos.forEach((deposito) => {
+            if (!deposito.data) {
+                return;
+            }
+
+            const [anoDeposito, mesDeposito] = deposito.data.split("-");
+            const mesesDoDeposito = Number(anoDeposito) * 12 + (Number(mesDeposito) - 1);
+
+            if (mesesDoDeposito === mesesAtual) {
+                saldo -= deposito.valor;
+            }
+        });
+    });
+
+    return Math.round(saldo * 100) / 100;
+}
+
+
+metas.forEach((meta) => {
+    if (!Array.isArray(meta.depositos)) {
+        meta.depositos = [];
+
+        if (meta.guardado > 0) {
+            meta.depositos.push({ id: Date.now(), valor: meta.guardado, data: null });
+        }
+
+        delete meta.guardado;
+    }
+});
+
+localStorage.setItem("metas", JSON.stringify(metas));
+
 const formMeta = document.getElementById("form-meta");
 const metaNome = document.getElementById("meta-nome");
 const metaAlvo = document.getElementById("meta-alvo");
@@ -202,8 +261,15 @@ function salvarMetas() {
 }
 
 function excluirMeta(id) {
-    confirmarAcao("Deseja excluir esta meta?", () => {
-        metas = metas.filter((meta) => meta.id !== id);
+    const meta = metas.find((item) => item.id === id);
+    const guardado = totalGuardado(meta);
+
+    const mensagem = guardado > 0
+        ? `Esta meta tem ${formatarMoeda(guardado)} guardados. Excluir devolve esse valor ao saldo dos meses em que foi depositado. Para devolver só ao mês atual, resgate antes. Excluir mesmo assim?`
+        : "Deseja excluir esta meta?";
+
+    confirmarAcao(mensagem, () => {
+        metas = metas.filter((item) => item.id !== id);
 
         salvarMetas();
         exibirMetas();
@@ -222,7 +288,9 @@ function exibirMetas() {
     }
 
     metas.forEach((meta) => {
-        const percentual = (meta.guardado / meta.alvo) * 100;
+
+        const guardado = totalGuardado(meta);
+        const percentual = (guardado / meta.alvo) * 100;
 
         const li = document.createElement("li");
 
@@ -233,7 +301,7 @@ function exibirMetas() {
         const valores = document.createElement("span");
         valores.classList.add("valor-limite");
         valores.textContent =
-            `${formatarMoeda(meta.guardado)} de ${formatarMoeda(meta.alvo)}`;
+            `${formatarMoeda(guardado)} de ${formatarMoeda(meta.alvo)}`;
 
         const btnExcluir = document.createElement("button");
         btnExcluir.textContent = "Excluir";
@@ -259,7 +327,7 @@ function exibirMetas() {
             detalhe.textContent = "Meta atingida!";
         } else {
             detalhe.textContent =
-                `${percentual.toFixed(0)}% guardado — faltam ${formatarMoeda(meta.alvo - meta.guardado)}`;
+                `${percentual.toFixed(0)}% guardado — faltam ${formatarMoeda(meta.alvo - guardado)}`;
         }
 
         const formGuardar = document.createElement("form");
@@ -289,7 +357,65 @@ function exibirMetas() {
                 return;
             }
 
-            meta.guardado = Math.round((meta.guardado + valorGuardado) * 100) / 100;
+                        const disponivel = saldoDisponivelHoje();
+
+            if (valorGuardado > disponivel) {
+                mostrarAviso(
+                    `Saldo insuficiente. Disponível este mês: ${formatarMoeda(Math.max(disponivel, 0))}.`
+                );
+                return;
+            }
+
+            meta.depositos.push({
+                id: Date.now(),
+                valor: Math.round(valorGuardado * 100) / 100,
+                data: dataDeHoje()
+            });
+
+            salvarMetas();
+            exibirMetas();
+        });
+
+                const formResgatar = document.createElement("form");
+        formResgatar.classList.add("form-linha", "form-guardar");
+
+        const campoResgate = document.createElement("input");
+        campoResgate.type = "number";
+        campoResgate.step = "0.01";
+        campoResgate.min = "0.01";
+        campoResgate.placeholder = "Valor a resgatar (R$)";
+        campoResgate.setAttribute("aria-label", "Valor a resgatar");
+
+        const btnResgatar = document.createElement("button");
+        btnResgatar.type = "submit";
+        btnResgatar.textContent = "Resgatar";
+
+        formResgatar.appendChild(campoResgate);
+        formResgatar.appendChild(btnResgatar);
+
+        formResgatar.addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            const valorResgate = Number(campoResgate.value);
+            const disponivelNaMeta = totalGuardado(meta);
+
+            if (!Number.isFinite(valorResgate) || valorResgate <= 0) {
+                mostrarAviso("Informe um valor válido.");
+                return;
+            }
+
+            if (valorResgate > disponivelNaMeta) {
+                mostrarAviso(
+                    `Você só tem ${formatarMoeda(disponivelNaMeta)} guardado nesta meta.`
+                );
+                return;
+            }
+
+            meta.depositos.push({
+                id: Date.now(),
+                valor: -Math.round(valorResgate * 100) / 100,
+                data: dataDeHoje()
+            });
 
             salvarMetas();
             exibirMetas();
@@ -301,6 +427,9 @@ function exibirMetas() {
         li.appendChild(barra);
         li.appendChild(detalhe);
         li.appendChild(formGuardar);
+        if (guardado > 0) {
+            li.appendChild(formResgatar);
+        }
 
         listaMetas.appendChild(li);
     });
@@ -321,7 +450,7 @@ formMeta.addEventListener("submit", (event) => {
         id: Date.now(),
         nome: nome,
         alvo: alvo,
-        guardado: 0
+        depositos: []
     });
 
     salvarMetas();
