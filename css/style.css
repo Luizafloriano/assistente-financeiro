@@ -61,7 +61,7 @@ header h1 {
 
 #resumo {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
   gap: 16px;
   padding: 24px;
 }
@@ -92,6 +92,10 @@ header h1 {
 
 .card-despesas p {
   color: var(--cor-despesa);
+}
+
+.card-guardado p {
+  color: var(--cor-principal);
 }
 
 #graficos {
