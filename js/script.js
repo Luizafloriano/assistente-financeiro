@@ -18,6 +18,7 @@ const legendaReceitasDespesas = document.getElementById("legenda-receitas-despes
 const graficoCategorias = document.getElementById("grafico-categorias");
 const legendaCategorias = document.getElementById("legenda-categorias");
 const comparacaoSaldo = document.getElementById("comparacao-saldo");
+const valorGuardado = document.getElementById("valor-guardado");
 
 let movimentacoes = JSON.parse(localStorage.getItem("movimentacoes")) || [];
 
@@ -83,6 +84,32 @@ function apareceNoMes(item, mesSelecionado, anoSelecionado) {
     }
 
     return mesesSelecionado === mesesDoItem;
+}
+
+function lerMetas() {
+    return JSON.parse(localStorage.getItem("metas")) || [];
+}
+
+function guardadoNoMes(mes, ano) {
+    const mesesSelecionado = ano * 12 + mes;
+    let total = 0;
+
+    lerMetas().forEach((meta) => {
+        (meta.depositos || []).forEach((deposito) => {
+            if (!deposito.data) {
+                return;
+            }
+
+            const [anoDeposito, mesDeposito] = deposito.data.split("-");
+            const mesesDoDeposito = Number(anoDeposito) * 12 + (Number(mesDeposito) - 1);
+
+            if (mesesDoDeposito === mesesSelecionado) {
+                total += deposito.valor;
+            }
+        });
+    });
+
+    return Math.round(total * 100) / 100;
 }
 
 function atualizarGraficoReceitasDespesas() {
@@ -257,6 +284,8 @@ function calcularSaldo(mes, ano) {
         }
     });
 
+    saldo -= guardadoNoMes(mes, ano);
+
     return { saldo, quantidade };
 }
 
@@ -279,7 +308,8 @@ function atualizarResumo() {
         }
     });
 
-    const saldo = receitas - despesas;
+    const guardado = guardadoNoMes(mesSelecionado, anoSelecionado);
+    const saldo = Math.round((receitas - despesas - guardado) * 100) / 100;
 
     valorSaldo.textContent = saldo.toLocaleString("pt-BR", {
         style: "currency",
@@ -296,9 +326,12 @@ function atualizarResumo() {
         currency: "BRL"
     });
 
+
         const anterior = calcularSaldo(mesSelecionado - 1, anoSelecionado);
 
     comparacaoSaldo.classList.remove("positiva", "negativa");
+
+    valorGuardado.textContent = formatarMoeda(guardado);
 
     if (anterior.quantidade === 0) {
         comparacaoSaldo.textContent = "Sem dados no mês anterior";
